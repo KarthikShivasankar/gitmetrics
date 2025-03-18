@@ -23,15 +23,10 @@ setup(
         "gitpython>=3.1.0",
         "pandas>=1.0.0",
         "numpy>=1.18.0",
-        "matplotlib>=3.1.0",
-        "plotly>=4.14.0",
         "networkx>=2.5",
-        "dash>=2.0.0",
-        "dash-bootstrap-components>=1.0.0",
         "scikit-learn>=0.24.0",
         "requests>=2.25.0",
         "tqdm>=4.50.0",
-        "orjson>=3.6.0",  # Optional: for improved JSON serialization performance with Dash 2.0
     ],
     entry_points={
         "console_scripts": [

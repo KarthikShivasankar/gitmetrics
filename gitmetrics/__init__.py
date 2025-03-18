@@ -1,7 +1,7 @@
 """
 GitMetrics - A Python package for analyzing Git repositories
 
-This package provides tools for extracting and visualizing various Git repository
+This package provides tools for extracting various Git repository
 statistics and metrics, including co-change metrics, error proneness, ripple effects,
 and more.
 """

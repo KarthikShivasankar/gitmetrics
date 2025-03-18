@@ -1,0 +1,2 @@
+[console_scripts]
+gitmetrics = gitmetrics.cli:main

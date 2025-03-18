@@ -54,12 +54,61 @@ class GitRepository:
         """Clean up temporary directory if this is a remote repository."""
         if hasattr(self, "is_remote") and self.is_remote and hasattr(self, "temp_dir"):
             import shutil
+            import time
+            import errno
+            import os
+            import stat
+            import atexit
 
-            logger.info(f"Cleaning up temporary directory {self.temp_dir}")
-            shutil.rmtree(self.temp_dir)
+            def cleanup():
+                try:
+                    logger.info(f"Cleaning up temporary directory {self.temp_dir}")
+                    # Try to remove the directory with retries
+                    max_retries = 3
+                    for attempt in range(max_retries):
+                        try:
+                            # First try to remove files
+                            for root, dirs, files in os.walk(self.temp_dir, topdown=False):
+                                for name in files:
+                                    try:
+                                        file_path = os.path.join(root, name)
+                                        # Make file writable before removing
+                                        os.chmod(file_path, stat.S_IWRITE | stat.S_IREAD)
+                                        os.remove(file_path)
+                                    except (PermissionError, OSError) as e:
+                                        logger.debug(f"Could not remove file {file_path}: {e}")
+                                        pass
+                                for name in dirs:
+                                    try:
+                                        dir_path = os.path.join(root, name)
+                                        # Make directory writable before removing
+                                        os.chmod(dir_path, stat.S_IWRITE | stat.S_IREAD)
+                                        os.rmdir(dir_path)
+                                    except (PermissionError, OSError) as e:
+                                        logger.debug(f"Could not remove directory {dir_path}: {e}")
+                                        pass
+                            
+                            # Then try to remove the directory itself
+                            # Make directory writable before removing
+                            os.chmod(self.temp_dir, stat.S_IWRITE | stat.S_IREAD)
+                            shutil.rmtree(self.temp_dir)
+                            break
+                        except (PermissionError, OSError) as e:
+                            if attempt < max_retries - 1:
+                                time.sleep(2)  # Wait longer between retries
+                                continue
+                            if e.errno == errno.EACCES:  # Permission denied
+                                logger.warning(f"Permission denied when removing {self.temp_dir}. You may need to remove it manually.")
+                            else:
+                                logger.warning(f"Could not remove temporary directory {self.temp_dir} after {max_retries} attempts")
+                except Exception as e:
+                    logger.warning(f"Error during cleanup: {e}")
+
+            # Register cleanup function to run at exit
+            atexit.register(cleanup)
 
     def get_commits(
-        self, branch: str = "master", max_count: Optional[int] = None
+        self, branch: str = "main", max_count: Optional[int] = None
     ) -> List[Commit]:
         """
         Get commits from the repository.
@@ -91,7 +140,7 @@ class GitRepository:
 
         return commits
 
-    def get_commit_count(self, branch: str = "master") -> int:
+    def get_commit_count(self, branch: str = "main") -> int:
         """
         Get the number of commits in the repository.
 
@@ -125,7 +174,7 @@ class GitRepository:
 
         return list(authors.values())
 
-    def get_file_changes(self, branch: str = "master") -> Dict[str, int]:
+    def get_file_changes(self, branch: str = "main") -> Dict[str, int]:
         """
         Get the number of times each file has been changed.
 
@@ -161,7 +210,7 @@ class GitRepository:
 
         return file_changes
 
-    def get_commit_activity(self, branch: str = "master") -> Dict[str, int]:
+    def get_commit_activity(self, branch: str = "main") -> Dict[str, int]:
         """
         Get commit activity over time.
 
@@ -184,7 +233,7 @@ class GitRepository:
 
         return activity
 
-    def get_file_types(self, branch: str = "master") -> Dict[str, int]:
+    def get_file_types(self, branch: str = "main") -> Dict[str, int]:
         """
         Get the distribution of file types in the repository.
 
@@ -231,7 +280,7 @@ class GitRepository:
 
         return file_types
 
-    def get_lines_of_code(self, branch: str = "master") -> Dict[str, int]:
+    def get_lines_of_code(self, branch: str = "main") -> Dict[str, int]:
         """
         Get the lines of code in the repository.
 
@@ -323,10 +372,6 @@ class GitRepository:
                 # Skip binary files
                 if self._is_binary(blob.data_stream.read(1024)):
                     continue
-
-                # Reset the data stream
-                blob.data_stream.close()
-                blob.data_stream = blob.data_stream.reopen()
 
                 # Read the file content
                 try:

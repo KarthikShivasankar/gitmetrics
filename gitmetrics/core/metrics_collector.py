@@ -44,37 +44,37 @@ class MetricsCollector:
         self.repo = repo
         self.metrics = {}
 
-    def collect_all_metrics(self, branch: str = "master") -> Dict[str, Any]:
+    def collect_all_metrics(self, branch: str = "main") -> Dict[str, Any]:
         """
-        Collect all available metrics from the repository.
+        Collect all metrics from the repository.
 
         Args:
-            branch: Branch to analyze
+            branch: Branch to analyze (defaults to "main")
 
         Returns:
-            Dictionary with all collected metrics
+            Dictionary with all metrics
         """
         logger.info(f"Collecting all metrics for branch: {branch}")
 
-        # Collect general statistics
+        # Skip if master branch is specified
+        if branch == "master":
+            logger.warning("Master branch is not supported. Using main branch instead.")
+            branch = "main"
+
+        # Try to get the specified branch
+        try:
+            self.repo.repo.heads[branch]
+        except Exception:
+            logger.warning(f"Branch {branch} not found. Using main branch instead.")
+            branch = "main"
+
+        # Collect all metrics
         self.collect_general_stats()
-
-        # Collect co-change metrics
         self.collect_co_change_metrics(branch)
-
-        # Collect change proneness metrics
         self.collect_change_proneness_metrics(branch)
-
-        # Collect error proneness metrics
         self.collect_error_proneness_metrics(branch)
-
-        # Collect structural coupling metrics
         self.collect_structural_coupling_metrics(branch)
-
-        # Collect semantic coupling metrics
         self.collect_semantic_coupling_metrics(branch)
-
-        # Collect cohesion metrics
         self.collect_cohesion_metrics(branch)
 
         logger.info("All metrics collected")
@@ -112,7 +112,7 @@ class MetricsCollector:
 
         return stats
 
-    def collect_co_change_metrics(self, branch: str = "master") -> Dict[str, Any]:
+    def collect_co_change_metrics(self, branch: str = "main") -> Dict[str, Any]:
         """
         Collect co-change metrics from the repository.
 
@@ -130,7 +130,7 @@ class MetricsCollector:
         return co_change
 
     def collect_change_proneness_metrics(
-        self, branch: str = "master"
+        self, branch: str = "main"
     ) -> Dict[str, Any]:
         """
         Collect change proneness metrics from the repository.
@@ -148,7 +148,7 @@ class MetricsCollector:
 
         return change_proneness
 
-    def collect_error_proneness_metrics(self, branch: str = "master") -> Dict[str, Any]:
+    def collect_error_proneness_metrics(self, branch: str = "main") -> Dict[str, Any]:
         """
         Collect error proneness metrics from the repository.
 
@@ -166,7 +166,7 @@ class MetricsCollector:
         return error_proneness
 
     def collect_structural_coupling_metrics(
-        self, branch: str = "master"
+        self, branch: str = "main"
     ) -> Dict[str, Any]:
         """
         Collect structural coupling metrics from the repository.
@@ -189,7 +189,7 @@ class MetricsCollector:
         return structural_coupling
 
     def collect_semantic_coupling_metrics(
-        self, branch: str = "master"
+        self, branch: str = "main"
     ) -> Dict[str, Any]:
         """
         Collect semantic coupling metrics from the repository.
@@ -211,7 +211,7 @@ class MetricsCollector:
 
         return semantic_coupling
 
-    def collect_cohesion_metrics(self, branch: str = "master") -> Dict[str, Any]:
+    def collect_cohesion_metrics(self, branch: str = "main") -> Dict[str, Any]:
         """
         Collect cohesion metrics from the repository.
 

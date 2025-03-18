@@ -48,7 +48,7 @@ def get_changed_files(repo: Repo, commit: Commit) -> Set[str]:
 
 
 def calculate_co_change_matrix(
-    repo: Repo, branch: str = "master", min_count: int = 2
+    repo: Repo, branch: str = "main", min_count: int = 2
 ) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """
     Calculate the co-change matrix for a repository.
@@ -68,13 +68,13 @@ def calculate_co_change_matrix(
     try:
         # Try to use the specified branch
         commits = list(repo.iter_commits(branch))
-    except:
+    except Exception:
         # If the branch doesn't exist, try 'main' instead
         try:
             commits = list(repo.iter_commits("main"))
-        except:
-            # If 'main' doesn't exist either, use the default branch
-            commits = list(repo.iter_commits())
+        except Exception:
+            # If 'main' doesn't exist either, use HEAD
+            commits = list(repo.iter_commits("HEAD"))
 
     # Dictionary to store co-change counts
     co_change_counts = defaultdict(int)
@@ -146,7 +146,7 @@ def calculate_co_change_matrix(
 
 
 def calculate_co_change_metrics(
-    repo: Repo, branch: str = "master", min_count: int = 2
+    repo: Repo, branch: str = "main", min_count: int = 2
 ) -> Dict[str, Any]:
     """
     Calculate various co-change metrics for a repository.

@@ -1,3 +1,32 @@
+Metadata-Version: 2.2
+Name: gitmetrics
+Version: 0.1.0
+Summary: A Python package for analyzing Git repositories
+Home-page: https://github.com/example/gitmetrics
+Author: GitMetrics Team
+Author-email: example@example.com
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+Requires-Dist: gitpython>=3.1.0
+Requires-Dist: pandas>=1.0.0
+Requires-Dist: numpy>=1.18.0
+Requires-Dist: networkx>=2.5
+Requires-Dist: scikit-learn>=0.24.0
+Requires-Dist: requests>=2.25.0
+Requires-Dist: tqdm>=4.50.0
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
 # GitMetrics
 
 A Python package for generating various Git repository statistics and metrics to help development teams gain insights into their codebase and development practices.

@@ -20,7 +20,7 @@ from gitmetrics.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
-def calculate_change_frequency(repo: Repo, branch: str = "master") -> pd.DataFrame:
+def calculate_change_frequency(repo: Repo, branch: str = "main") -> pd.DataFrame:
     """
     Calculate the change frequency for each file in the repository.
 
@@ -160,7 +160,7 @@ def calculate_change_frequency(repo: Repo, branch: str = "master") -> pd.DataFra
     return df
 
 
-def calculate_change_proneness(repo: Repo, branch: str = "master") -> Dict[str, Any]:
+def calculate_change_proneness(repo: Repo, branch: str = "main") -> Dict[str, Any]:
     """
     Calculate change proneness metrics for files in a Git repository.
 
@@ -261,7 +261,20 @@ def calculate_change_proneness(repo: Repo, branch: str = "master") -> Dict[str, 
     for path, changes in file_changes.items():
         try:
             # Try to get the file from the repository
-            file_content = repo.git.show(f"{branch}:{path}")
+            file_content = None
+            for ref in [branch, "main", "HEAD"]:
+                try:
+                    file_content = repo.git.show(f"{ref}:{path}")
+                    break
+                except Exception as e:
+                    logger.debug(f"Could not get file content from {ref}: {e}")
+                    continue
+            
+            if file_content is None:
+                logger.warning(f"Could not retrieve file content for {path} from any branch")
+                file_change_density[path] = 0
+                continue
+            
             lines = file_content.count("\n") + 1
 
             # Avoid division by zero
@@ -343,7 +356,7 @@ def calculate_change_proneness(repo: Repo, branch: str = "master") -> Dict[str, 
     return results
 
 
-def calculate_error_proneness(repo: Repo, branch: str = "master") -> Dict[str, Any]:
+def calculate_error_proneness(repo: Repo, branch: str = "main") -> Dict[str, Any]:
     """
     Calculate error proneness metrics for files in a Git repository.
 
@@ -437,7 +450,20 @@ def calculate_error_proneness(repo: Repo, branch: str = "master") -> Dict[str, A
     for path, bugs in file_bugs.items():
         try:
             # Try to get the file from the repository
-            file_content = repo.git.show(f"{branch}:{path}")
+            file_content = None
+            for ref in [branch, "main", "HEAD"]:
+                try:
+                    file_content = repo.git.show(f"{ref}:{path}")
+                    break
+                except Exception as e:
+                    logger.debug(f"Could not get file content from {ref}: {e}")
+                    continue
+            
+            if file_content is None:
+                logger.warning(f"Could not retrieve file content for {path} from any branch")
+                file_bug_density[path] = 0
+                continue
+            
             lines = file_content.count("\n") + 1
 
             # Avoid division by zero

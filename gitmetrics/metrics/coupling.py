@@ -55,7 +55,7 @@ def extract_modules(file_paths: List[str]) -> Dict[str, List[str]]:
     return modules
 
 
-def calculate_structural_coupling(repo: Repo, branch: str = "master") -> Dict[str, Any]:
+def calculate_structural_coupling(repo: Repo, branch: str = "main") -> Dict[str, Any]:
     """
     Calculate structural coupling metrics for a repository.
 
@@ -74,13 +74,13 @@ def calculate_structural_coupling(repo: Repo, branch: str = "master") -> Dict[st
     try:
         # Try to use the specified branch
         commits = list(repo.iter_commits(branch))
-    except:
+    except Exception:
         # If the branch doesn't exist, try 'main' instead
         try:
             commits = list(repo.iter_commits("main"))
-        except:
-            # If 'main' doesn't exist either, use the default branch
-            commits = list(repo.iter_commits())
+        except Exception:
+            # If 'main' doesn't exist either, use HEAD
+            commits = list(repo.iter_commits("HEAD"))
 
     # Get all files in the repository
     all_files = set()
@@ -214,10 +214,12 @@ def calculate_structural_coupling(repo: Repo, branch: str = "master") -> Dict[st
 
     # Calculate graph metrics
     graph_metrics = {
-        "density": nx.density(G),
-        "avg_clustering": nx.average_clustering(G),
+        "density": nx.density(G) if G.number_of_nodes() > 0 else 0.0,
+        "avg_clustering": nx.average_clustering(G) if G.number_of_edges() > 0 else 0.0,
         "avg_shortest_path_length": (
-            nx.average_shortest_path_length(G) if nx.is_connected(G) else None
+            nx.average_shortest_path_length(G) 
+            if G.number_of_nodes() > 1 and G.number_of_edges() > 0 and nx.is_connected(G) 
+            else None
         ),
     }
 
@@ -235,7 +237,7 @@ def calculate_structural_coupling(repo: Repo, branch: str = "master") -> Dict[st
     return result
 
 
-def calculate_semantic_coupling(repo: Repo, branch: str = "master") -> Dict[str, Any]:
+def calculate_semantic_coupling(repo: Repo, branch: str = "main") -> Dict[str, Any]:
     """
     Calculate semantic coupling metrics for a repository.
 
@@ -438,10 +440,12 @@ def calculate_semantic_coupling(repo: Repo, branch: str = "master") -> Dict[str,
 
     # Calculate graph metrics
     graph_metrics = {
-        "density": nx.density(G),
-        "avg_clustering": nx.average_clustering(G),
+        "density": nx.density(G) if G.number_of_nodes() > 0 else 0.0,
+        "avg_clustering": nx.average_clustering(G) if G.number_of_edges() > 0 else 0.0,
         "avg_shortest_path_length": (
-            nx.average_shortest_path_length(G) if nx.is_connected(G) else None
+            nx.average_shortest_path_length(G) 
+            if G.number_of_nodes() > 1 and G.number_of_edges() > 0 and nx.is_connected(G) 
+            else None
         ),
     }
 
@@ -459,7 +463,7 @@ def calculate_semantic_coupling(repo: Repo, branch: str = "master") -> Dict[str,
     return result
 
 
-def calculate_cohesion(repo: Repo, branch: str = "master") -> Dict[str, Any]:
+def calculate_cohesion(repo: Repo, branch: str = "main") -> Dict[str, Any]:
     """
     Calculate cohesion metrics for a repository.
 
